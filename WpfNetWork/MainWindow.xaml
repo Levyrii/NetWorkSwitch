@@ -1,0 +1,99 @@
+﻿<Window
+    x:Class="WpfNetWork.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:WpfNetWork"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="260"
+    Height="200"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <FontFamily x:Key="IconFont">
+            pack://application:,,,/WpfNetWork;IconFont/iconfont.ttf#iconfont
+        </FontFamily>
+    </Window.Resources>
+    <Border
+        Background="White"
+        BorderBrush="MediumPurple"
+        BorderThickness="1"
+        CornerRadius="6">
+        <Grid Height="200" VerticalAlignment="Bottom">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25" />
+                <RowDefinition Height="36" />
+                <RowDefinition Height="36" />
+                <RowDefinition Height="10" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    x:Name="btnMin"
+                    Width="23"
+                    Height="20"
+                    Margin="0"
+                    Padding="0"
+                    Click="BtnMin_Click"
+                    Content="-"
+                    Cursor="Hand" />
+                <Button
+                    x:Name="btnClose"
+                    Width="23"
+                    Height="20"
+                    Margin="5,0,1,0"
+                    Padding="0"
+                    Click="BtnClose_Click"
+                    Content="×"
+                    Cursor="Hand" />
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center">以太网：</TextBlock>
+                <TextBox
+                    x:Name="txtEnther"
+                    Width="140"
+                    Height="24"
+                    VerticalAlignment="Center">
+                    以太网
+                </TextBox>
+            </StackPanel>
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center">无线SID：</TextBlock>
+                <TextBox
+                    x:Name="txtWifi"
+                    Width="140"
+                    Height="24"
+                    VerticalAlignment="Center"
+                    Cursor="IBeam">
+                    SFKJ
+                </TextBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" VerticalAlignment="Center">
+                <Button
+                    x:Name="btnSwitch"
+                    Width="120"
+                    Height="40"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Click="BtnSwitch_Click"
+                    Content="切换"
+                    Cursor="Hand" />
+            </StackPanel>
+        </Grid>
+    </Border>
+
+</Window>
