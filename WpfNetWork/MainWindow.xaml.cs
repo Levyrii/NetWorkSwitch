@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Management;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -34,6 +33,11 @@ namespace WpfNetWork
         }
 
         #region 事件处理
+        /// <summary>
+        /// 窗口加载处理事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             int wlanStatus = GetNetConStatus("baidu.com");
@@ -51,6 +55,11 @@ namespace WpfNetWork
             }
         }
 
+        /// <summary>
+        /// 网络切换按钮处理事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void BtnSwitch_Click(object sender, RoutedEventArgs e)
         {
             ResetNWIName();
@@ -152,7 +161,7 @@ namespace WpfNetWork
             {
                 CreateNoWindow = true
             };
-            Process p = new Process
+            Process p = new()
             {
                 StartInfo = psi
             };
@@ -171,7 +180,7 @@ namespace WpfNetWork
             {
                 CreateNoWindow = true
             };
-            Process p = new Process
+            Process p = new()
             {
                 StartInfo = psi
             };
@@ -187,7 +196,7 @@ namespace WpfNetWork
         private int GetNetConStatus(string strNetAddress)
         {
             int iNetStatus = 0;
-            int dwFlag = new int();
+            int dwFlag = new();
             if (!InternetGetConnectedState(ref dwFlag, 0))
             {
                 //没有能连上互联网
@@ -207,7 +216,6 @@ namespace WpfNetWork
                     iNetStatus = 4;
                 }
             }
-
             else if ((dwFlag & INTERNET_CONNECTION_LAN) != 0)
             {
                 //采用网卡上网,需要进一步判断能否登录具体网站
@@ -234,7 +242,7 @@ namespace WpfNetWork
         {
             try
             {
-                Ping ping = new Ping();
+                Ping ping = new();
                 PingReply pr = ping.Send(strNetAdd, 3000);
                 return pr.Status == IPStatus.Success;
             }
@@ -265,64 +273,6 @@ namespace WpfNetWork
                 profileName: availableNetwork.ProfileName,
                 bssType: availableNetwork.BssType,
                 timeout: TimeSpan.FromSeconds(10));
-        }
-
-        /// <summary>
-        /// 禁用网卡
-        /// </summary>
-        /// <param name="network"></param>
-        /// <returns></returns>
-        public bool DisableNetWork(ManagementObject network)
-        {
-            if (network == null) return false;
-            try
-            {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                network.InvokeMethod("Disable", null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 启用网卡
-        /// </summary>
-        /// <param name="network"></param>
-        /// <returns></returns>
-        public bool EnableNetWork(ManagementObject network)
-        {
-            if (network == null) return false;
-            try
-            {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-                network.InvokeMethod("Enable", null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public ManagementObject? NetWork(string networkname)
-        {
-            string netState = "SELECT * FROM WIN32_NETWORKADAPTER";
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(netState);
-            ManagementObjectCollection collection = searcher.Get();
-
-            foreach (ManagementObject manage in collection)
-            {
-                if (manage["Name"].ToString() == networkname)
-                {
-                    return manage;
-                }
-            }
-            return null;
         }
     }
 
