@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace WpfNetWork
 {
@@ -18,6 +19,8 @@ namespace WpfNetWork
     public partial class MainWindow : Window
     {
         private readonly NetList _netWorkList = new();
+        private readonly string _cfgPath;
+        private readonly XDocument _cfgXd;
         private const int INTERNET_CONNECTION_MODEM = 1;
         private const int INTERNET_CONNECTION_LAN = 2;
 
@@ -28,9 +31,13 @@ namespace WpfNetWork
         {
             InitializeComponent();
 
+            _cfgPath = Path.Combine(AppContext.BaseDirectory, "Config", "SaveCfg.xml");
+            _cfgXd = XDocument.Load(_cfgPath);
+
             SetNetWorkList();
             Loaded += MainWindow_Loaded;
             MouseMove += MainWindow_MouseMove;
+            Closed += MainWindow_Closed;
         }
 
         #region 事件处理
@@ -41,6 +48,9 @@ namespace WpfNetWork
         /// <param name="e"></param>
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            txtEnther.Text = GetSpecXeVal("EthernetName");
+            txtWifi.Text = GetSpecXeVal("WifiName");
+
             int wlanStatus = GetNetConStatus("baidu.com");
             if (wlanStatus == 3)
             {
@@ -85,6 +95,20 @@ namespace WpfNetWork
             btnSwitch.Content = "切换到内网";
         }
 
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+            try
+            {
+                SetSpecXeVal("EthernetName", txtEnther.Text);
+                SetSpecXeVal("WifiName", txtWifi.Text);
+                _cfgXd.Save(_cfgPath);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex.ToString());
+            }
+        }
+
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -117,13 +141,14 @@ namespace WpfNetWork
             var validNWILst = GetValidNWI();
             var wirelessNWI = validNWILst.FirstOrDefault(
                 p => p.NetworkInterfaceType == NetworkInterfaceType.Wireless80211);
-            _netWorkList.Add(new NetCls(wirelessNWI == null ? "WLAN" : wirelessNWI.Name, 0));
+
+            string wirelessName = wirelessNWI == null ? GetSpecXeVal("WirelessName") : wirelessNWI.Name;
+            _netWorkList.Add(new NetCls(wirelessName, 0));
 
             var ethernetNWI = validNWILst.FirstOrDefault(
                 p => p.NetworkInterfaceType == NetworkInterfaceType.Ethernet);
-            string ethernetName = ethernetNWI == null ?
-                (string.IsNullOrEmpty(txtEnther.Text) ? "以太网" : txtEnther.Text) : ethernetNWI.Name;
 
+            string ethernetName = ethernetNWI == null ? txtEnther.Text : ethernetNWI.Name;
             _netWorkList.Add(new NetCls(ethernetName, 1));
         }
 
@@ -261,6 +286,8 @@ namespace WpfNetWork
         /// <returns></returns>
         public async Task<bool> ConnectWifiAsync(string sid)
         {
+            if (string.IsNullOrEmpty(sid)) return false;
+
             //NativeWifi.ThrowsOnAnyFailure = true;
             var availableNetwork = await GetAvailableNetworkPacks(sid);
             if (availableNetwork is null) return false;
@@ -286,6 +313,38 @@ namespace WpfNetWork
 
             await Task.Delay(200);
             return await GetAvailableNetworkPacks(sid, ++curEnlistTimes);
+        }
+
+        private string GetSpecXeVal(string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName)) return string.Empty;
+
+            var specXe = _cfgXd
+                .Element("Items")
+                ?.Elements("Item")
+                ?.FirstOrDefault(p => p.Attribute("key")?.Value == keyName);
+            return specXe?.Value ?? string.Empty;
+        }
+
+        private void SetSpecXeVal(string keyName, string val)
+        {
+            if (string.IsNullOrEmpty(keyName)) return;
+
+            var specXe = _cfgXd
+                .Element("Items")
+                ?.Elements("Item")
+                ?.FirstOrDefault(p => p.Attribute("key")?.Value == keyName);
+            if (specXe == null) return;
+            specXe.Value = val;
+        }
+
+        private void WriteLog(string msg)
+        {
+            string logPath = Path.Combine(AppContext.BaseDirectory, "log.txt");
+            using StreamWriter sw = new(logPath, true);
+            sw.WriteLineAsync($"当前时间：{DateTime.Now}");
+            sw.WriteLineAsync(msg);
+            sw.WriteLineAsync(Environment.NewLine);
         }
     }
 
