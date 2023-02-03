@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -62,6 +63,9 @@ namespace WpfNetWork
         /// <param name="e"></param>
         private async void BtnSwitch_Click(object sender, RoutedEventArgs e)
         {
+            string? btnContent = btnSwitch.Content.ToString();
+            if (btnContent != "切换到内网" && btnContent != "切换到外网") return;
+
             ResetNWIName();
             if (btnSwitch.Content.ToString() == "切换到内网")
             {
@@ -69,18 +73,16 @@ namespace WpfNetWork
                 await DisableNWI(_netWorkList.WirelessNWIName);
                 await EnableNWI(_netWorkList.EthernetNWIName);
                 btnSwitch.Content = "切换到外网";
+                return;
             }
-            else
-            {
-                btnSwitch.Content = "切换中...";
-                await DisableNWI(_netWorkList.EthernetNWIName);
-                await EnableNWI(_netWorkList.WirelessNWIName);
-                btnSwitch.Content = "Wifi连接中...";
-                await Task.Delay(2000);
-                bool ret = await ConnectWifiAsync(txtWifi.Text);
-                //MessageBox.Show(ex.ToString());
-                btnSwitch.Content = "切换到内网";
-            }
+
+            btnSwitch.Content = "切换中...";
+            await DisableNWI(_netWorkList.EthernetNWIName);
+            await EnableNWI(_netWorkList.WirelessNWIName);
+            btnSwitch.Content = "Wifi连接中...";
+            await Task.Delay(600);
+            bool ret = await ConnectWifiAsync(txtWifi.Text);
+            btnSwitch.Content = "切换到内网";
         }
 
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -259,13 +261,8 @@ namespace WpfNetWork
         /// <returns></returns>
         public async Task<bool> ConnectWifiAsync(string sid)
         {
-            NativeWifi.ThrowsOnAnyFailure = true;
-            var ret = NativeWifi.EnumerateAvailableNetworks().ToList();
-            var availableNetwork = ret
-                .Where(x => x.ProfileName == sid)
-                .OrderByDescending(x => x.SignalQuality)
-                .FirstOrDefault();
-
+            //NativeWifi.ThrowsOnAnyFailure = true;
+            var availableNetwork = await GetAvailableNetworkPacks(sid);
             if (availableNetwork is null) return false;
 
             return await NativeWifi.ConnectNetworkAsync(
@@ -273,6 +270,22 @@ namespace WpfNetWork
                 profileName: availableNetwork.ProfileName,
                 bssType: availableNetwork.BssType,
                 timeout: TimeSpan.FromSeconds(10));
+        }
+
+        private async Task<AvailableNetworkPack?> GetAvailableNetworkPacks(
+            string sid, int curEnlistTimes = 0)
+        {
+            if (curEnlistTimes >= 10) return null;
+
+            var ret = NativeWifi.EnumerateAvailableNetworks().ToList();
+            var availableNetwork = ret
+                .Where(x => x.ProfileName == sid)
+                .OrderByDescending(x => x.SignalQuality)
+                .FirstOrDefault();
+            if (availableNetwork != null) return availableNetwork;
+
+            await Task.Delay(200);
+            return await GetAvailableNetworkPacks(sid, ++curEnlistTimes);
         }
     }
 
