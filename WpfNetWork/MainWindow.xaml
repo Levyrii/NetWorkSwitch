@@ -63,9 +63,7 @@
                     x:Name="txtEnther"
                     Width="140"
                     Height="24"
-                    VerticalAlignment="Center">
-                    以太网
-                </TextBox>
+                    VerticalAlignment="Center" />
             </StackPanel>
             <StackPanel
                 Grid.Row="2"
@@ -77,9 +75,7 @@
                     Width="140"
                     Height="24"
                     VerticalAlignment="Center"
-                    Cursor="IBeam">
-                    SFKJ
-                </TextBox>
+                    Cursor="IBeam" />
             </StackPanel>
 
             <StackPanel Grid.Row="4" VerticalAlignment="Center">

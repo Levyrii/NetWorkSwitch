@@ -34,7 +34,6 @@ namespace WpfNetWork
             _cfgPath = Path.Combine(AppContext.BaseDirectory, "Config", "SaveCfg.xml");
             _cfgXd = XDocument.Load(_cfgPath);
 
-            SetNetWorkList();
             Loaded += MainWindow_Loaded;
             MouseMove += MainWindow_MouseMove;
             Closed += MainWindow_Closed;
@@ -50,6 +49,7 @@ namespace WpfNetWork
         {
             txtEnther.Text = GetSpecXeVal("EthernetName");
             txtWifi.Text = GetSpecXeVal("WifiName");
+            SetNetWorkList();
 
             int wlanStatus = GetNetConStatus("baidu.com");
             if (wlanStatus == 3)
@@ -91,7 +91,15 @@ namespace WpfNetWork
             await EnableNWI(_netWorkList.WirelessNWIName);
             btnSwitch.Content = "Wifi连接中...";
             await Task.Delay(600);
-            bool ret = await ConnectWifiAsync(txtWifi.Text);
+            try
+            {
+                bool ret = await ConnectWifiAsync(txtWifi.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+
             btnSwitch.Content = "切换到内网";
         }
 
@@ -148,7 +156,12 @@ namespace WpfNetWork
             var ethernetNWI = validNWILst.FirstOrDefault(
                 p => p.NetworkInterfaceType == NetworkInterfaceType.Ethernet);
 
-            string ethernetName = ethernetNWI == null ? txtEnther.Text : ethernetNWI.Name;
+            string ethernetName = txtEnther.Text;
+            if (ethernetNWI != null)
+            {
+                ethernetName = ethernetNWI.Name;
+                txtEnther.Text = ethernetName;
+            }
             _netWorkList.Add(new NetCls(ethernetName, 1));
         }
 
@@ -288,7 +301,6 @@ namespace WpfNetWork
         {
             if (string.IsNullOrEmpty(sid)) return false;
 
-            //NativeWifi.ThrowsOnAnyFailure = true;
             var availableNetwork = await GetAvailableNetworkPacks(sid);
             if (availableNetwork is null) return false;
 

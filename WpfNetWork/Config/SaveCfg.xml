@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Items>
 	<Item key="WirelessName">WLAN</Item>
-	<Item key="EthernetName">以太网</Item>
+	<Item key="EthernetName"></Item>
 	<Item key="WifiName">SFKJ</Item>
 </Items>
